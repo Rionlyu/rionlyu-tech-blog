@@ -1,0 +1,43 @@
+{{define "contact-form"}}
+<div class="contact-form-region" id="contact-form-region" tabindex="-1">
+  {{if .Form.Success}}
+    <section class="contact-success" data-contact-success="{{.Form.SuccessID}}" tabindex="-1">
+      <h1>{{.Site.Pages.Contact.SuccessHeading}}</h1>
+      <p>{{.Site.Pages.Contact.SuccessBody}}</p>
+      <p class="sr-only" role="status" aria-live="polite">{{.Site.Pages.Contact.SuccessAnnouncement}}</p>
+    </section>
+  {{else}}
+    <h1 class="contact-title">{{.Site.Pages.Contact.Heading}}</h1>
+    <form class="contact-form" action="/contact" method="post"
+      hx-post="/contact" hx-target="#contact-form-region" hx-swap="outerHTML" hx-disabled-elt="find button">
+      <input type="hidden" name="_csrf" value="{{.Form.CSRFToken}}">
+      {{if .Form.GlobalError}}<p class="form-error" role="alert">{{.Form.GlobalError}}</p>{{end}}
+      {{$nameError := index .Form.Errors "name"}}
+      <div class="form-field">
+        <label for="contact-name">{{.Site.Pages.Contact.NameLabel}}</label>
+        <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="100"
+          value="{{.Form.Name}}"{{if $nameError}} aria-invalid="true" aria-describedby="name-error"{{end}}>
+        {{if $nameError}}<p class="field-error" id="name-error">{{$nameError}}</p>{{end}}
+      </div>
+      {{$emailError := index .Form.Errors "email"}}
+      <div class="form-field">
+        <label for="contact-email">{{.Site.Pages.Contact.EmailLabel}}</label>
+        <input id="contact-email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="254"
+          value=""{{if $emailError}} aria-invalid="true" aria-describedby="email-error"{{end}}>
+        {{if $emailError}}<p class="field-error" id="email-error">{{$emailError}}</p>{{end}}
+      </div>
+      {{$messageError := index .Form.Errors "message"}}
+      <div class="form-field">
+        <label for="contact-message">{{.Site.Pages.Contact.MessageLabel}}</label>
+        <textarea id="contact-message" name="message" required maxlength="5000"{{if $messageError}} aria-invalid="true" aria-describedby="message-error"{{end}}></textarea>
+        {{if $messageError}}<p class="field-error" id="message-error">{{$messageError}}</p>{{end}}
+      </div>
+      <div class="hp-field" aria-hidden="true">
+        <label for="contact-website">{{.Site.Labels.Honeypot}}</label>
+        <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <button class="send-button" type="submit"{{if not .Form.Available}} disabled{{end}}>{{.Site.Pages.Contact.SendLabel}}</button>
+    </form>
+  {{end}}
+</div>
+{{end}}

@@ -1,0 +1,21 @@
+{{define "content"}}
+<div class="shell">
+  <h1 class="sr-only">{{.Site.Pages.Home.Heading}}</h1>
+  <section class="post-list" aria-label="{{.Site.Labels.PublishedWriting}}">
+    {{range .Posts}}
+    <article class="post-row">
+      <a class="post-row-link" href="/posts/{{.Slug}}">
+        <div class="post-meta">
+          <time datetime="{{.Date.Format "2006-01-02"}}">{{.DateDisplay}}</time>
+        </div>
+        <h2 class="post-list-title" data-pretext-title>
+          <span class="post-title-semantic">{{.Title}}</span>
+          <span class="post-title-visual" aria-hidden="true"></span>
+        </h2>
+        {{if .Summary}}<p class="post-summary">{{.Summary}}</p>{{end}}
+      </a>
+    </article>
+    {{end}}
+  </section>
+</div>
+{{end}}

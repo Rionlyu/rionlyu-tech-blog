@@ -1,0 +1,9 @@
+{
+	email {$ACME_EMAIL}
+	admin off
+}
+
+rionlyu.dev, www.rionlyu.dev {
+	header -Server
+	reverse_proxy blog:8080
+}

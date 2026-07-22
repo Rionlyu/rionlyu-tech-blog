@@ -1,0 +1,52 @@
+{{define "base"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Meta.Title}}</title>
+  <meta name="description" content="{{.Meta.Description}}">
+  <link rel="canonical" href="{{.Meta.Canonical}}">
+  <link rel="alternate" type="application/rss+xml" title="{{.Site.Labels.FeedTitle}}" href="{{.Meta.RSS}}">
+  <link rel="icon" type="image/svg+xml" href="{{asset "favicon.svg"}}">
+  <link rel="stylesheet" href="{{asset "site.css"}}">
+  <meta property="og:site_name" content="{{.Site.Identity.Wordmark}}">
+  <meta property="og:type" content="{{.Meta.OGType}}">
+  <meta property="og:title" content="{{.Meta.Title}}">
+  <meta property="og:description" content="{{.Meta.Description}}">
+  <meta property="og:url" content="{{.Meta.Canonical}}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{.Meta.Title}}">
+  <meta name="twitter:description" content="{{.Meta.Description}}">
+  {{if .Meta.Published}}<meta property="article:published_time" content="{{.Meta.Published}}">{{end}}
+  {{if .Meta.Updated}}<meta property="article:modified_time" content="{{.Meta.Updated}}">{{end}}
+  {{if .Meta.NoIndex}}<meta name="robots" content="noindex, nofollow">{{end}}
+  {{if .Meta.StructuredData}}<script type="application/ld+json">{{.Meta.StructuredData}}</script>{{end}}
+  {{range .Meta.Scripts}}<script defer src="{{asset .}}"></script>{{end}}
+</head>
+<body>
+  <a class="skip-link" href="#main-content">{{.Site.Labels.SkipContent}}</a>
+  <header class="site-header shell">
+    <a class="wordmark" href="/" aria-label="{{.Site.Labels.WritingHome}}">{{.Site.Identity.Wordmark}}</a>
+    <nav class="site-nav" aria-label="{{.Site.Labels.PrimaryNavigation}}">
+      <ul>
+        <li><a href="/"{{if eq .Meta.Section "writing"}} aria-current="page"{{end}}>{{.Site.Navigation.Writing}}</a></li>
+        <li><a href="/projects"{{if eq .Meta.Section "projects"}} aria-current="page"{{end}}>{{.Site.Navigation.Projects}}</a></li>
+        <li><a href="/contact"{{if eq .Meta.Section "contact"}} aria-current="page"{{end}}>{{.Site.Navigation.Contact}}</a></li>
+        <li><a href="{{.Site.Identity.GitHub}}" rel="me">{{.Site.Navigation.GitHub}}</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main-content" tabindex="-1">
+    {{template "content" .}}
+  </main>
+  <footer class="site-footer shell">
+    <p class="footer-year">© {{.Year}} {{.Site.Identity.Name}}</p>
+    <ul class="footer-links">
+      <li><a href="/contact">{{.Site.Footer.Contact}}</a></li>
+      <li><a href="/rss.xml">{{.Site.Footer.RSS}}</a></li>
+      <li><a href="{{.Site.Identity.GitHub}}" rel="me">{{.Site.Footer.GitHub}}</a></li>
+    </ul>
+  </footer>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The acknowledgement is the durability boundary — Rionlyu</title>
+  <meta name="description" content="A small HTTP delivery service is only as durable as the promise it makes before replying.">
+  <link rel="canonical" href="https://example.test/posts/acknowledgement-durability-boundary">
+  <link rel="alternate" type="application/rss+xml" title="Rionlyu — Writing" href="https://example.test/rss.xml">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.4bfbd75ba387.svg">
+  <link rel="stylesheet" href="/assets/site.a7087ed4cd01.css">
+  <meta property="og:site_name" content="Rionlyu">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The acknowledgement is the durability boundary — Rionlyu">
+  <meta property="og:description" content="A small HTTP delivery service is only as durable as the promise it makes before replying.">
+  <meta property="og:url" content="https://example.test/posts/acknowledgement-durability-boundary">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="The acknowledgement is the durability boundary — Rionlyu">
+  <meta name="twitter:description" content="A small HTTP delivery service is only as durable as the promise it makes before replying.">
+  <meta property="article:published_time" content="2026-07-22T00:00:00Z">
+  
+  
+  <script type="application/ld+json">{"@type":"BlogPosting"}</script>
+  
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header shell">
+    <a class="wordmark" href="/" aria-label="Rionlyu writing">Rionlyu</a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <ul>
+        <li><a href="/" aria-current="page">Writing</a></li>
+        <li><a href="/projects">Projects</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="https://github.com/Rionlyu" rel="me">GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main-content" tabindex="-1">
+    
+<article>
+  <header class="article-header shell">
+    <h1 class="article-title">The acknowledgement is the durability boundary</h1>
+    <p class="article-deck">A small HTTP delivery service is only as durable as the promise it makes before replying.</p>
+    <div class="article-meta">
+      <span>Published <time datetime="2026-07-22">July 22, 2026</time></span>
+      
+      <span>3 min read</span>
+    </div>
+  </header>
+  <div class="article-body"><p>An HTTP <code>202 Accepted</code> response looks modest. In a delivery system, it is a contract: the caller is now allowed to forget the request. Everything important follows from deciding exactly when the server may make that promise.</p>
+<h2 id="the-dangerous-interval"><a class="heading-anchor" href="#the-dangerous-interval" aria-label="Copy link to this section">#</a>The dangerous interval</h2>
+<p>Consider a process that receives a request, places it in memory, sends <code>202</code>, and writes it to disk a moment later. The happy path is quick. The failure path contains a gap:</p>
+<ol>
+<li>the server accepts the bytes;</li>
+<li>the server acknowledges them;</li>
+<li>the process stops before persistence completes.</li>
+</ol>
+<p>The caller saw success, but the delivery no longer exists. Retries cannot repair a request that both sides believe the other side owns.</p>
+<p>The durable ordering is less exciting and more useful:</p>
+<pre><code class="language-text">validate → append → synchronize → acknowledge → deliver
+</code></pre>
+<p>That synchronization step is the boundary. Before it completes, the caller still owns the request. After it completes, the delivery service does.</p>
+<h2 id="a-small-state-machine-beats-a-vague-queue"><a class="heading-anchor" href="#a-small-state-machine-beats-a-vague-queue" aria-label="Copy link to this section">#</a>A small state machine beats a vague queue</h2>
+<p>Durability is not only about writing bytes. Recovery needs to produce the same logical state every time. An append-only journal can represent mutations such as enqueue, lease, success, retry, and cancellation. Startup replays those records into an in-memory view; the journal remains the authority.</p>
+<p>This is the model used by <a href="https://github.com/Rionlyu/spoold">spoold</a>: it synchronizes a delivery to its local journal before acknowledging it, then performs delivery in the background. The design avoids requiring a separate database or broker, but it does not pretend to be a distributed queue.</p>
+<h2 id="at-least-once-is-the-honest-result"><a class="heading-anchor" href="#at-least-once-is-the-honest-result" aria-label="Copy link to this section">#</a>At-least-once is the honest result</h2>
+<p>There is another unavoidable interval on the outbound side. A destination may accept a request just before the delivery process stops, but before success is persisted locally. After recovery, the only safe action is to try again.</p>
+<p>That means a durable local spool provides at-least-once delivery. Destinations need a stable delivery identifier and an idempotent way to handle duplicates. Calling this edge case “exactly once” would move the ambiguity into undocumented behavior; naming it makes the integration testable.</p>
+<h2 id="recovery-is-part-of-the-write-path"><a class="heading-anchor" href="#recovery-is-part-of-the-write-path" aria-label="Copy link to this section">#</a>Recovery is part of the write path</h2>
+<p>The persistence format should be designed from the replay function backward. A useful recovery contract answers concrete questions:</p>
+<ul>
+<li>What happens to a partial final record?</li>
+<li>What happens to corruption in an earlier record?</li>
+<li>Can an expired lease return to pending work?</li>
+<li>Can compaction replace the journal without creating a new acknowledgement gap?</li>
+</ul>
+<p>If these answers are unclear, the system has a storage mechanism, not yet a durability model.</p>
+<h2 id="keep-the-boundary-narrow"><a class="heading-anchor" href="#keep-the-boundary-narrow" aria-label="Copy link to this section">#</a>Keep the boundary narrow</h2>
+<p>A local spool is useful when one process needs its outbound request to survive its own lifetime. It is not the right boundary when enqueueing must be atomic with an application database transaction, or when work must remain available across multiple hosts.</p>
+<p>The important design move is not adding machinery. It is choosing one promise, putting the expensive operation immediately before that promise, and making every recovery path preserve it.</p>
+</div>
+</article>
+
+
+  </main>
+  <footer class="site-footer shell">
+    <p class="footer-year">© 2026 Beniamin Kmieć</p>
+    <ul class="footer-links">
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/rss.xml">RSS</a></li>
+      <li><a href="https://github.com/Rionlyu" rel="me">GitHub</a></li>
+    </ul>
+  </footer>
+</body>
+</html>

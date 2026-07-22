@@ -1,0 +1,16 @@
+{{define "content"}}
+<div class="shell">
+  <h1 class="sr-only">{{.Site.Pages.Projects.Heading}}</h1>
+  <div class="projects-list">
+    {{range $project := .Site.Projects}}
+    <article class="project-row">
+      <div>
+        <h2 class="project-name">{{$project.Name}}</h2>
+        <p class="project-summary">{{$project.Summary}}</p>
+        <a class="project-source" href="{{$project.URL}}">{{$.Site.Pages.Projects.SourceLabel}} ↗</a>
+      </div>
+    </article>
+    {{end}}
+  </div>
+</div>
+{{end}}

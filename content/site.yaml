@@ -1,0 +1,78 @@
+identity:
+  name: Beniamin Kmieć
+  wordmark: Rionlyu
+  github: https://github.com/Rionlyu
+
+navigation:
+  writing: Writing
+  projects: Projects
+  contact: Contact
+  github: GitHub
+
+pages:
+  home:
+    title: Writing — Rionlyu
+    description: Technical writing by Beniamin Kmieć about backend systems, reliability, and engineering practice.
+    heading: Writing
+  projects:
+    title: Projects — Rionlyu
+    description: "Two open-source backend tools by Beniamin Kmieć: spoold and kube-job-doctor."
+    heading: Projects
+    source_label: View source
+  contact:
+    title: Contact — Rionlyu
+    description: Send a message to Beniamin Kmieć.
+    heading: Contact
+    introduction: A short note is enough. I’ll reply by email.
+    name_label: Name
+    email_label: Email
+    message_label: Message
+    send_label: Send
+    success_heading: Thank you.
+    success_body: I’ll get back to you by email.
+    success_announcement: Message sent successfully. I’ll get back to you by email.
+    unavailable: Contact is not configured on this deployment.
+    form_expired: Your form expired. Please try again.
+    request_too_large: That submission is too large.
+    invalid_submission: The form submission is invalid. Please try again.
+    rate_limited: Too many messages were sent from this connection. Please try again later.
+    delivery_failed: The message could not be sent. Please try again.
+  not_found:
+    title: Not found — Rionlyu
+    description: The requested page does not exist.
+    heading: Nothing here.
+    body: The requested page does not exist.
+    link_label: Return to writing
+  error:
+    title: Server error — Rionlyu
+    description: The server could not complete the request.
+    heading: Something went wrong.
+    body: The request could not be completed. Please try again.
+
+footer:
+  contact: Contact
+  rss: RSS
+  github: GitHub
+
+labels:
+  skip_content: Skip to content
+  writing_home: Rionlyu writing
+  primary_navigation: Primary navigation
+  published_writing: Published writing
+  adjacent_articles: Adjacent articles
+  honeypot: Website
+  feed_title: Rionlyu — Writing
+  published: Published
+  updated: Updated
+  minute_read: min read
+  older_post: Older post
+  newer_post: Newer post
+  heading_link: Copy link to this section
+
+projects:
+  - name: spoold
+    url: https://github.com/Rionlyu/spoold
+    summary: "Durable curl: crash-safe local HTTP delivery without a database or broker."
+  - name: kube-job-doctor
+    url: https://github.com/Rionlyu/kube-job-doctor
+    summary: Read-only, evidence-backed diagnostics for Kubernetes Jobs managed by Kueue.

@@ -1,0 +1,7 @@
+{{define "content"}}
+<section class="simple-page shell">
+  <h1 class="page-title">{{.Heading}}</h1>
+  <p>{{.Body}}</p>
+  {{if .LinkLabel}}<p><a href="/">{{.LinkLabel}}</a></p>{{end}}
+</section>
+{{end}}

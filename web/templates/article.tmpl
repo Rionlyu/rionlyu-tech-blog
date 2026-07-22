@@ -1,0 +1,22 @@
+{{define "content"}}
+<article>
+  <header class="article-header shell">
+    <h1 class="article-title">{{.Post.Title}}</h1>
+    {{if .Post.Summary}}<p class="article-deck">{{.Post.Summary}}</p>{{end}}
+    <div class="article-meta">
+      <span>{{.Site.Labels.Published}} <time datetime="{{.Post.Date.Format "2006-01-02"}}">{{.Post.DateDisplay}}</time></span>
+      {{if .Post.UpdatedDisplay}}<span>{{.Site.Labels.Updated}} <time datetime="{{.Post.Updated.Format "2006-01-02"}}">{{.Post.UpdatedDisplay}}</time></span>{{end}}
+      <span>{{.Post.ReadingTime}} {{.Site.Labels.MinuteRead}}</span>
+    </div>
+  </header>
+  <div class="article-body">{{.Post.HTML}}</div>
+</article>
+{{if or .HasOlder .HasNewer}}
+<nav class="shell" aria-label="{{.Site.Labels.AdjacentArticles}}">
+  <ul class="article-pagination">
+    {{if .HasOlder}}<li><a href="/posts/{{.Older.Slug}}"><span class="eyebrow">{{.Site.Labels.OlderPost}}</span><br>{{.Older.Title}}</a></li>{{end}}
+    {{if .HasNewer}}<li><a href="/posts/{{.Newer.Slug}}"><span class="eyebrow">{{.Site.Labels.NewerPost}}</span><br>{{.Newer.Title}}</a></li>{{end}}
+  </ul>
+</nav>
+{{end}}
+{{end}}
