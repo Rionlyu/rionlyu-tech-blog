@@ -118,8 +118,7 @@ The quiet validation form is intentional: ordinary `docker compose config` outpu
 
 ```sh
 docker compose --env-file .env -f deploy/mikrus/compose.yaml config --quiet
-docker compose --env-file .env -f deploy/mikrus/compose.yaml build --pull blog
-docker compose --env-file .env -f deploy/mikrus/compose.yaml pull cloudflared
+docker compose --env-file .env -f deploy/mikrus/compose.yaml build --pull blog cloudflared
 docker compose --env-file .env -f deploy/mikrus/compose.yaml up -d
 docker compose --env-file .env -f deploy/mikrus/compose.yaml ps
 ```
@@ -161,12 +160,13 @@ The application limits itself to 64 active requests by default. Public requests 
 ```sh
 git pull --ff-only
 make test
-docker compose --env-file .env -f deploy/mikrus/compose.yaml build --pull blog
-docker compose --env-file .env -f deploy/mikrus/compose.yaml pull cloudflared
+docker compose --env-file .env -f deploy/mikrus/compose.yaml build --pull blog cloudflared
 docker compose --env-file .env -f deploy/mikrus/compose.yaml up -d
 ```
 
-The Cloudflare image is pinned by version and multi-platform digest. Dependabot proposes reviewed updates rather than silently changing it. Check disk use periodically with `docker system df`; Mikrus has no reliable file-backed swap, so retain the 4 GB plan for container builds.
+Cloudflare's upstream `2026.7.2` image contains known high-severity findings in its Go runtime and gRPC dependency. The deployment therefore builds the exact tagged source commit with Go 1.26.5 and the minimal gRPC 1.82.1 security update. The source commit, builder, runtime base, dependency checksums, and resulting image version are pinned; CI scans the rebuilt connector. Review each later upstream release and return to the official image after it passes the same scan. Dependabot proposes updates to the build and runtime bases, while the source release is reviewed manually.
+
+Check disk use periodically with `docker system df`; Mikrus has no reliable file-backed swap, so retain the 4 GB plan for container builds.
 
 Review Cloudflare Analytics and Security Events after publishing a popular link, and use the checks in the [traffic and abuse plan](traffic-and-abuse.md) when investigating unusual traffic. Do not increase `MAX_IN_FLIGHT_REQUESTS` until measurements show the application is healthy and the edge cache is already working.
 

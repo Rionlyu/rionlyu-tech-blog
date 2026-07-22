@@ -39,7 +39,10 @@ services:
         max-file: "3"
 
   cloudflared:
-    image: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+    build:
+      context: ../..
+      dockerfile: deploy/mikrus/Cloudflared.Dockerfile
+    image: rionlyu-cloudflared:2026.7.2-security.1
     restart: unless-stopped
     depends_on:
       blog:

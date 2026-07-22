@@ -127,7 +127,7 @@ Every non-standard runtime/build dependency is pinned:
 | `esbuild` 0.28.1 | Tiny local build step for the two page-specific bundles and CSS |
 | `pako` 3.0.1 | Platform-independent generation of committed precompressed assets |
 | Caddy 2.11.4 with gRPC 1.82.1 | Minimal TLS edge image with the current fixed Go dependency set |
-| cloudflared 2026.7.2 | Pinned outbound connector for the Mikrus deployment |
+| cloudflared 2026.7.2 source, Go 1.26.5, gRPC 1.82.1 | Pinned outbound connector rebuilt with the current security fixes |
 | Noto Emoji `duck` at `8998f5d` | Apache-2.0-licensed duck by Google, rendered as a monochrome text-color mask |
 
 `package-lock.json` and `go.sum` record transitive dependencies. CI action revisions are pinned by commit SHA. The browser build contains no CDN imports, trackers, remotely hosted fonts, or animation libraries. See `THIRD_PARTY_NOTICES.md` and `LICENSES/Apache-2.0.txt` for the bundled icon notice and license.
@@ -157,4 +157,4 @@ The process reads `PORT`, exposes `/healthz`, sets explicit HTTP timeouts, and s
 
 ## Security
 
-CI runs formatting checks, npm audit, `go vet`, staticcheck, unit and HTTP integration tests, race tests, `govulncheck`, binary compilation, complete container builds, Compose validation, and high/critical vulnerability scans of the application, Caddy, and Cloudflare Tunnel images. Dependabot watches Go, npm, Caddy, Docker, cloudflared, and GitHub Actions dependencies. The [traffic and abuse plan](docs/traffic-and-abuse.md) documents edge WAF/rate-limit/cache settings, graceful overload behavior, monitoring, and incident response. Please report suspected vulnerabilities through the private process in [SECURITY.md](SECURITY.md), not a public issue.
+CI runs formatting checks, npm audit, `go vet`, staticcheck, unit and HTTP integration tests, race tests, `govulncheck`, binary compilation, complete container builds, Compose validation, and high/critical vulnerability scans of the application, Caddy, and Cloudflare Tunnel images. Dependabot watches Go, npm, Caddy, container bases, and GitHub Actions dependencies; the pinned cloudflared source release is reviewed manually. The [traffic and abuse plan](docs/traffic-and-abuse.md) documents edge WAF/rate-limit/cache settings, graceful overload behavior, monitoring, and incident response. Please report suspected vulnerabilities through the private process in [SECURITY.md](SECURITY.md), not a public issue.

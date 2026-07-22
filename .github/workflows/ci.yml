@@ -63,7 +63,9 @@ jobs:
         run: |
           docker build --tag rionlyu-blog:ci .
           docker build --file deploy/Caddy.Dockerfile --tag rionlyu-caddy:ci .
-          docker pull cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+          docker build --file deploy/mikrus/Cloudflared.Dockerfile --tag rionlyu-cloudflared:ci .
+          test "$(docker run --rm rionlyu-cloudflared:ci version)" = \
+            "cloudflared version 2026.7.2 (built 2026-07-15T11:01:07Z)"
 
       - name: Validate Compose deployments
         env:
@@ -96,7 +98,7 @@ jobs:
       - name: Scan tunnel container
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+          image-ref: rionlyu-cloudflared:ci
           format: table
           exit-code: "1"
           vuln-type: os,library
