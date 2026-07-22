@@ -123,6 +123,7 @@ Every non-standard runtime/build dependency is pinned:
 | `@chenglou/pretext` 0.0.8 | Cached variable-width layout for the one title interaction |
 | `htmx.org` 2.0.10 | Progressive contact-form fragment submission |
 | `esbuild` 0.28.1 | Tiny local build step for the two page-specific bundles and CSS |
+| `pako` 3.0.1 | Platform-independent generation of committed precompressed assets |
 | Caddy 2.11.4 with gRPC 1.82.1 | Minimal TLS edge image with the current fixed Go dependency set |
 | Noto Emoji `duck` at `8998f5d` | Apache-2.0-licensed duck by Google, rendered as a monochrome text-color mask |
 

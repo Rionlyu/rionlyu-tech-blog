@@ -1,8 +1,8 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { gzipSync } from "node:zlib";
 import { build } from "esbuild";
+import { gzip } from "pako";
 import { digest, validateDuck } from "./check-assets.mjs";
 
 const root = process.cwd();
@@ -17,10 +17,9 @@ async function emit(logicalName, content) {
   const extension = path.extname(logicalName);
   const base = path.basename(logicalName, extension);
   const fileName = `${base}.${digest(content)}${extension}`;
-  const compressed = gzipSync(content, { level: 9 });
-  // zlib records the host OS in byte 9, so otherwise macOS and Linux produce
-  // byte-different gzip files for identical input. RFC 1952 reserves 255 for
-  // an unknown OS; using it makes committed precompressed assets reproducible.
+  const compressed = gzip(content, { level: 9 });
+  // RFC 1952 reserves 255 for an unknown OS. Normalizing that metadata keeps
+  // the pure-JavaScript compressed output identical on every build host.
   compressed[9] = 255;
   await writeFile(path.join(outputDirectory, fileName), content);
   await writeFile(path.join(outputDirectory, `${fileName}.gz`), compressed);
