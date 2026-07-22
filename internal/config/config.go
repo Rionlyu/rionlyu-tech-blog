@@ -27,8 +27,10 @@ type Config struct {
 	ContactWebhookToken string
 	ContactTimeout      time.Duration
 	ContactRateLimit    int
+	ContactGlobalLimit  int
 	ContactRateWindow   time.Duration
 	ContactMaxBody      int64
+	MaxInFlightRequests int
 	CSRFSecret          []byte
 	TrustedProxies      []netip.Prefix
 	ReadHeaderTimeout   time.Duration
@@ -96,9 +98,20 @@ func Load(lookup func(string) (string, bool)) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	globalRateLimit, err := positiveInt(valueOr(lookup, "CONTACT_GLOBAL_RATE_LIMIT", "100"), "CONTACT_GLOBAL_RATE_LIMIT")
+	if err != nil {
+		return Config{}, err
+	}
 	rateWindow, err := positiveDuration(valueOr(lookup, "CONTACT_RATE_WINDOW", "1h"), "CONTACT_RATE_WINDOW")
 	if err != nil {
 		return Config{}, err
+	}
+	maxInFlight, err := positiveInt(valueOr(lookup, "MAX_IN_FLIGHT_REQUESTS", "64"), "MAX_IN_FLIGHT_REQUESTS")
+	if err != nil {
+		return Config{}, err
+	}
+	if maxInFlight > 4096 {
+		return Config{}, errors.New("MAX_IN_FLIGHT_REQUESTS must be at most 4096")
 	}
 
 	secret := []byte(valueOr(lookup, "CSRF_SECRET", ""))
@@ -126,8 +139,10 @@ func Load(lookup func(string) (string, bool)) (Config, error) {
 		ContactWebhookToken: valueOr(lookup, "CONTACT_WEBHOOK_TOKEN", ""),
 		ContactTimeout:      contactTimeout,
 		ContactRateLimit:    rateLimit,
+		ContactGlobalLimit:  globalRateLimit,
 		ContactRateWindow:   rateWindow,
 		ContactMaxBody:      64 << 10,
+		MaxInFlightRequests: maxInFlight,
 		CSRFSecret:          secret,
 		TrustedProxies:      trustedProxies,
 		ReadHeaderTimeout:   5 * time.Second,

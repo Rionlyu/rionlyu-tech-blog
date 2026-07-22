@@ -26,37 +26,43 @@ import (
 )
 
 type Dependencies struct {
-	Config   config.Config
-	Content  *content.Store
-	Renderer *render.Renderer
-	Sender   contact.Sender
-	Limiter  *contact.Limiter
-	Logger   *slog.Logger
-	Now      func() time.Time
-	Random   io.Reader
+	Config        config.Config
+	Content       *content.Store
+	Renderer      *render.Renderer
+	Sender        contact.Sender
+	Limiter       *contact.Limiter
+	GlobalLimiter *contact.Limiter
+	Logger        *slog.Logger
+	Now           func() time.Time
+	Random        io.Reader
 }
 
 type Server struct {
-	config   config.Config
-	content  *content.Store
-	renderer *render.Renderer
-	sender   contact.Sender
-	limiter  *contact.Limiter
-	logger   *slog.Logger
-	now      func() time.Time
-	random   io.Reader
-	site     content.Site
-	ipSalt   [32]byte
-	sequence atomic.Uint64
-	handler  http.Handler
+	config        config.Config
+	content       *content.Store
+	renderer      *render.Renderer
+	sender        contact.Sender
+	limiter       *contact.Limiter
+	globalLimiter *contact.Limiter
+	logger        *slog.Logger
+	now           func() time.Time
+	random        io.Reader
+	site          content.Site
+	ipSalt        [32]byte
+	sequence      atomic.Uint64
+	inFlight      chan struct{}
+	handler       http.Handler
 }
 
 func New(dependencies Dependencies) (*Server, error) {
 	if dependencies.Config.Origin == nil {
 		return nil, fmt.Errorf("construct HTTP server: canonical origin is required")
 	}
-	if dependencies.Content == nil || dependencies.Renderer == nil || dependencies.Sender == nil || dependencies.Limiter == nil {
-		return nil, fmt.Errorf("construct HTTP server: content, renderer, sender, and limiter are required")
+	if dependencies.Content == nil || dependencies.Renderer == nil || dependencies.Sender == nil || dependencies.Limiter == nil || dependencies.GlobalLimiter == nil {
+		return nil, fmt.Errorf("construct HTTP server: content, renderer, sender, and limiters are required")
+	}
+	if dependencies.Config.MaxInFlightRequests <= 0 {
+		return nil, fmt.Errorf("construct HTTP server: maximum in-flight requests must be positive")
 	}
 	if dependencies.Logger == nil {
 		dependencies.Logger = slog.Default()
@@ -68,15 +74,17 @@ func New(dependencies Dependencies) (*Server, error) {
 		dependencies.Random = rand.Reader
 	}
 	server := &Server{
-		config:   dependencies.Config,
-		content:  dependencies.Content,
-		renderer: dependencies.Renderer,
-		sender:   dependencies.Sender,
-		limiter:  dependencies.Limiter,
-		logger:   dependencies.Logger,
-		now:      dependencies.Now,
-		random:   dependencies.Random,
-		site:     dependencies.Content.Site(),
+		config:        dependencies.Config,
+		content:       dependencies.Content,
+		renderer:      dependencies.Renderer,
+		sender:        dependencies.Sender,
+		limiter:       dependencies.Limiter,
+		globalLimiter: dependencies.GlobalLimiter,
+		logger:        dependencies.Logger,
+		now:           dependencies.Now,
+		random:        dependencies.Random,
+		site:          dependencies.Content.Site(),
+		inFlight:      make(chan struct{}, dependencies.Config.MaxInFlightRequests),
 	}
 	if _, err := io.ReadFull(server.random, server.ipSalt[:]); err != nil {
 		return nil, fmt.Errorf("construct HTTP server: generate rate-limit salt: %w", err)
@@ -95,7 +103,7 @@ func New(dependencies Dependencies) (*Server, error) {
 	mux.HandleFunc("GET /assets/{file}", server.staticAsset)
 	mux.HandleFunc("GET /", server.notFound)
 
-	server.handler = server.requestID(server.recoverPanics(server.logging(server.security(server.redirects(mux)))))
+	server.handler = server.requestID(server.recoverPanics(server.logging(server.security(server.overload(server.redirects(mux))))))
 	return server, nil
 }
 
@@ -271,6 +279,7 @@ func (s *Server) writeCacheable(w http.ResponseWriter, r *http.Request, status i
 	etag := `"` + base64.RawURLEncoding.EncodeToString(digest[:]) + `"`
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=0, must-revalidate")
+	w.Header().Set("Cloudflare-CDN-Cache-Control", "public, max-age=60, stale-while-revalidate=300, stale-if-error=86400")
 	w.Header().Set("ETag", etag)
 	if subtle.ConstantTimeCompare([]byte(r.Header.Get("If-None-Match")), []byte(etag)) == 1 {
 		w.WriteHeader(http.StatusNotModified)

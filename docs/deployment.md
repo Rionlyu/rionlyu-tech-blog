@@ -50,7 +50,9 @@ CONTACT_WEBHOOK_TOKEN=
 CSRF_SECRET=<the generated value>
 CONTACT_DELIVERY_TIMEOUT=8s
 CONTACT_RATE_LIMIT=5
+CONTACT_GLOBAL_RATE_LIMIT=100
 CONTACT_RATE_WINDOW=1h
+MAX_IN_FLIGHT_REQUESTS=64
 ```
 
 The webhook receives one JSON request:
@@ -124,6 +126,7 @@ For a rollback, check out a previously reviewed commit or tag and run the final 
 - Review Dependabot and CI results before merging dependency updates.
 - Back up the Git repository and protected release tags. Caddy’s named volumes contain replaceable certificate state, not blog content.
 - The rate limiter is process-local. Add an edge rate limit before running multiple replicas.
+- Keep the active-request gate enabled and follow the [traffic and abuse plan](traffic-and-abuse.md) for edge caching, spam defense, overload behavior, and incident response.
 
 ## Other container hosts
 

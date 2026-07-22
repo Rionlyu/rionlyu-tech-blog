@@ -54,7 +54,7 @@ internal/config ─────────────► cmd/blog (composition
 - `internal/contact` owns message validation, the in-memory rate policy, and the only external delivery interface.
 - `cmd/blog` constructs concrete dependencies and owns server timeouts, signals, and graceful shutdown.
 
-A page request reads the immutable snapshot, builds a typed view model, renders into a buffer, and only then writes a response. A contact request is size-limited and shape-checked, verifies a signed double-submit CSRF token, evaluates the honeypot and validation, applies the per-client rate limit, and calls `contact.Sender` with a deadline. The success marker is rendered only after the configured provider returns a 2xx acceptance.
+A page request reads the immutable snapshot, builds a typed view model, renders into a buffer, and only then writes a response. Public pages advertise a short shared-cache lifetime so an edge cache can absorb traffic spikes. An active-request gate rejects excess origin work with a retryable `503` instead of building an unbounded queue. A contact request is size-limited and shape-checked, verifies a signed double-submit CSRF token, evaluates the honeypot and validation, applies the per-client rate limit, and calls `contact.Sender` with a deadline. The success marker is rendered only after the configured provider returns a 2xx acceptance.
 
 There is no database, runtime content parsing, global service container, background framework, client-side router, or remote runtime asset.
 
@@ -96,7 +96,9 @@ CONTACT_WEBHOOK_URL=https://provider.example/accepted-messages
 CONTACT_WEBHOOK_TOKEN=...
 CONTACT_DELIVERY_TIMEOUT=8s
 CONTACT_RATE_LIMIT=5
+CONTACT_GLOBAL_RATE_LIMIT=100
 CONTACT_RATE_WINDOW=1h
+MAX_IN_FLIGHT_REQUESTS=64
 CSRF_SECRET=...
 ```
 
@@ -125,13 +127,14 @@ Every non-standard runtime/build dependency is pinned:
 | `esbuild` 0.28.1 | Tiny local build step for the two page-specific bundles and CSS |
 | `pako` 3.0.1 | Platform-independent generation of committed precompressed assets |
 | Caddy 2.11.4 with gRPC 1.82.1 | Minimal TLS edge image with the current fixed Go dependency set |
+| cloudflared 2026.7.2 | Pinned outbound connector for the Mikrus deployment |
 | Noto Emoji `duck` at `8998f5d` | Apache-2.0-licensed duck by Google, rendered as a monochrome text-color mask |
 
 `package-lock.json` and `go.sum` record transitive dependencies. CI action revisions are pinned by commit SHA. The browser build contains no CDN imports, trackers, remotely hosted fonts, or animation libraries. See `THIRD_PARTY_NOTICES.md` and `LICENSES/Apache-2.0.txt` for the bundled icon notice and license.
 
 ## Production
 
-For the recommended public setup—Docker Compose, Caddy-managed HTTPS, exact trusted-proxy configuration, DNS, verification, updates, and rollback—follow the [deployment guide](docs/deployment.md).
+For the selected Mikrus 3.5 setup—Docker Compose, an outbound Cloudflare Tunnel, exact trusted-proxy configuration, DNS, verification, updates, and rollback—follow the [Mikrus deployment guide](docs/mikrus-deployment.md). The [conventional VPS guide](docs/deployment.md) remains available for a host with dedicated public ports.
 
 The image can also run directly on any container host:
 
@@ -154,4 +157,4 @@ The process reads `PORT`, exposes `/healthz`, sets explicit HTTP timeouts, and s
 
 ## Security
 
-CI runs formatting checks, npm audit, `go vet`, staticcheck, unit and HTTP integration tests, race tests, `govulncheck`, binary compilation, complete application and edge-container builds, and high/critical vulnerability scans of both images. Dependabot watches Go, npm, Caddy, Docker, and GitHub Actions dependencies. Please report suspected vulnerabilities through the private process in [SECURITY.md](SECURITY.md), not a public issue.
+CI runs formatting checks, npm audit, `go vet`, staticcheck, unit and HTTP integration tests, race tests, `govulncheck`, binary compilation, complete container builds, Compose validation, and high/critical vulnerability scans of the application, Caddy, and Cloudflare Tunnel images. Dependabot watches Go, npm, Caddy, Docker, cloudflared, and GitHub Actions dependencies. The [traffic and abuse plan](docs/traffic-and-abuse.md) documents edge WAF/rate-limit/cache settings, graceful overload behavior, monitoring, and incident response. Please report suspected vulnerabilities through the private process in [SECURITY.md](SECURITY.md), not a public issue.

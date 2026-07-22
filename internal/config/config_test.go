@@ -12,11 +12,20 @@ func TestLoadDefaultsForDevelopment(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if cfg.Port != 8080 || cfg.Origin.String() != "http://localhost:8080" || cfg.ContactProvider != "devnull" {
+	if cfg.Port != 8080 || cfg.Origin.String() != "http://localhost:8080" || cfg.ContactProvider != "devnull" || cfg.ContactRateLimit != 5 || cfg.ContactGlobalLimit != 100 || cfg.MaxInFlightRequests != 64 {
 		t.Fatalf("Load() = %#v", cfg)
 	}
 	if len(cfg.CSRFSecret) != 32 {
 		t.Fatalf("development CSRF secret length = %d", len(cfg.CSRFSecret))
+	}
+}
+
+func TestLoadRejectsInvalidMaximumInFlightRequests(t *testing.T) {
+	t.Parallel()
+	for _, value := range []string{"0", "4097"} {
+		if _, err := config.Load(mapLookup(map[string]string{"MAX_IN_FLIGHT_REQUESTS": value})); err == nil {
+			t.Fatalf("Load(MAX_IN_FLIGHT_REQUESTS=%s) error = nil, want error", value)
+		}
 	}
 }
 

@@ -63,6 +63,17 @@ jobs:
         run: |
           docker build --tag rionlyu-blog:ci .
           docker build --file deploy/Caddy.Dockerfile --tag rionlyu-caddy:ci .
+          docker pull cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+
+      - name: Validate Compose deployments
+        env:
+          ACME_EMAIL: ci@example.test
+          CLOUDFLARE_TUNNEL_TOKEN: ci-placeholder
+          CONTACT_WEBHOOK_URL: https://contact.example.test/messages
+          CSRF_SECRET: 0123456789abcdef0123456789abcdef
+        run: |
+          docker compose -f deploy/compose.yaml config --quiet
+          docker compose -f deploy/mikrus/compose.yaml config --quiet
 
       - name: Scan application container
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -77,6 +88,15 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: rionlyu-caddy:ci
+          format: table
+          exit-code: "1"
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Scan tunnel container
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
           format: table
           exit-code: "1"
           vuln-type: os,library

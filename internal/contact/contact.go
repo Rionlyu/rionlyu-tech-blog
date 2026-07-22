@@ -152,6 +152,8 @@ type bucket struct {
 	count int
 }
 
+const maxLimiterBuckets = 4096
+
 // Limiter is a small in-memory fixed-window limiter suitable for one blog process.
 type Limiter struct {
 	mu      sync.Mutex
@@ -176,6 +178,12 @@ func (l *Limiter) Allow(key string) (bool, time.Duration) {
 
 	now := l.now()
 	current, exists := l.buckets[key]
+	if !exists && len(l.buckets) >= maxLimiterBuckets {
+		l.pruneExpired(now)
+		if len(l.buckets) >= maxLimiterBuckets {
+			return false, l.retryUntilCapacity(now)
+		}
+	}
 	if !exists || now.Sub(current.start) >= l.window {
 		l.buckets[key] = bucket{start: now, count: 1}
 		l.prune(now)
@@ -195,9 +203,24 @@ func (l *Limiter) prune(now time.Time) {
 	if l.calls%128 != 0 {
 		return
 	}
+	l.pruneExpired(now)
+}
+
+func (l *Limiter) pruneExpired(now time.Time) {
 	for key, entry := range l.buckets {
 		if now.Sub(entry.start) >= l.window {
 			delete(l.buckets, key)
 		}
 	}
+}
+
+func (l *Limiter) retryUntilCapacity(now time.Time) time.Duration {
+	retry := l.window
+	for _, entry := range l.buckets {
+		remaining := l.window - now.Sub(entry.start)
+		if remaining < retry {
+			retry = remaining
+		}
+	}
+	return max(time.Second, retry)
 }

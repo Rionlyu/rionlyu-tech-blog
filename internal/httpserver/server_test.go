@@ -138,6 +138,12 @@ func TestArticleCSPAndConditionalCaching(t *testing.T) {
 	if first.Code != http.StatusOK {
 		t.Fatalf("first article status = %d", first.Code)
 	}
+	if cache := first.Header().Get("Cache-Control"); cache != "public, max-age=0, must-revalidate" {
+		t.Fatalf("article Cache-Control = %q", cache)
+	}
+	if edgeCache := first.Header().Get("Cloudflare-CDN-Cache-Control"); !strings.Contains(edgeCache, "max-age=60") || !strings.Contains(edgeCache, "stale-while-revalidate=300") || !strings.Contains(edgeCache, "stale-if-error=86400") {
+		t.Fatalf("article Cloudflare-CDN-Cache-Control = %q", edgeCache)
+	}
 	match := regexp.MustCompile(`<script type="application/ld\+json">([^<]+)</script>`).FindSubmatch(first.Body.Bytes())
 	if len(match) != 2 {
 		t.Fatal("article JSON-LD script not found")
@@ -247,6 +253,19 @@ func TestContactSubmissionVariants(t *testing.T) {
 		}
 	})
 
+	t.Run("global rate limiting", func(t *testing.T) {
+		harness := newHarness(t, harnessOptions{globalRateLimit: 1})
+		firstForm, firstCookie := contactForm(t, harness.handler)
+		if first := submitFrom(t, harness.handler, firstForm, firstCookie, true, "192.0.2.10:1234"); first.Code != http.StatusOK {
+			t.Fatalf("first status = %d", first.Code)
+		}
+		secondForm, secondCookie := contactForm(t, harness.handler)
+		second := submitFrom(t, harness.handler, secondForm, secondCookie, true, "192.0.2.11:1234")
+		if second.Code != http.StatusTooManyRequests || second.Header().Get("Retry-After") == "" || harness.sender.Calls() != 1 {
+			t.Fatalf("second = %d, calls = %d", second.Code, harness.sender.Calls())
+		}
+	})
+
 	t.Run("CSRF failure", func(t *testing.T) {
 		harness := newHarness(t, harnessOptions{})
 		form, cookie := contactForm(t, harness.handler)
@@ -291,10 +310,11 @@ func TestContactSubmissionVariants(t *testing.T) {
 }
 
 type harnessOptions struct {
-	production   bool
-	trustedProxy bool
-	rateLimit    int
-	senderError  error
+	production      bool
+	trustedProxy    bool
+	rateLimit       int
+	globalRateLimit int
+	senderError     error
 }
 
 type harness struct {
@@ -322,15 +342,21 @@ func newHarness(t *testing.T, options harnessOptions) harness {
 	if rateLimit == 0 {
 		rateLimit = 5
 	}
+	globalRateLimit := options.globalRateLimit
+	if globalRateLimit == 0 {
+		globalRateLimit = 100
+	}
 	cfg := config.Config{
-		Environment:       environment,
-		Origin:            origin,
-		ContactProvider:   "webhook",
-		ContactTimeout:    time.Second,
-		ContactRateLimit:  rateLimit,
-		ContactRateWindow: time.Hour,
-		ContactMaxBody:    64 << 10,
-		CSRFSecret:        []byte("0123456789abcdef0123456789abcdef"),
+		Environment:         environment,
+		Origin:              origin,
+		ContactProvider:     "webhook",
+		ContactTimeout:      time.Second,
+		ContactRateLimit:    rateLimit,
+		ContactGlobalLimit:  globalRateLimit,
+		ContactRateWindow:   time.Hour,
+		ContactMaxBody:      64 << 10,
+		MaxInFlightRequests: 64,
+		CSRFSecret:          []byte("0123456789abcdef0123456789abcdef"),
 	}
 	if options.trustedProxy {
 		cfg.TrustedProxies = []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8")}
@@ -338,13 +364,14 @@ func newHarness(t *testing.T, options harnessOptions) harness {
 	sender := &stubSender{err: options.senderError}
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	server, err := bloghttp.New(bloghttp.Dependencies{
-		Config:   cfg,
-		Content:  store,
-		Renderer: renderer,
-		Sender:   sender,
-		Limiter:  contact.NewLimiter(rateLimit, time.Hour, time.Now),
-		Logger:   logger,
-		Now:      func() time.Time { return time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC) },
+		Config:        cfg,
+		Content:       store,
+		Renderer:      renderer,
+		Sender:        sender,
+		Limiter:       contact.NewLimiter(rateLimit, time.Hour, time.Now),
+		GlobalLimiter: contact.NewLimiter(globalRateLimit, time.Hour, time.Now),
+		Logger:        logger,
+		Now:           func() time.Time { return time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC) },
 	})
 	if err != nil {
 		t.Fatalf("httpserver.New() error = %v", err)
@@ -402,9 +429,13 @@ func contactForm(t *testing.T, handler http.Handler) (url.Values, *http.Cookie) 
 }
 
 func submit(t *testing.T, handler http.Handler, form url.Values, cookie *http.Cookie, htmx bool) *httptest.ResponseRecorder {
+	return submitFrom(t, handler, form, cookie, htmx, "192.0.2.10:1234")
+}
+
+func submitFrom(t *testing.T, handler http.Handler, form url.Values, cookie *http.Cookie, htmx bool, remoteAddress string) *httptest.ResponseRecorder {
 	t.Helper()
 	request := httptest.NewRequest(http.MethodPost, "/contact", strings.NewReader(form.Encode()))
-	request.RemoteAddr = "192.0.2.10:1234"
+	request.RemoteAddr = remoteAddress
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if htmx {
 		request.Header.Set("HX-Request", "true")

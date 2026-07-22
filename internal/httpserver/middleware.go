@@ -13,6 +13,15 @@ import (
 	"time"
 )
 
+const overloadPage = `<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Please try again shortly</title>
+<style>body{max-width:42rem;margin:15vh auto;padding:0 1.5rem;background:#ece4d7;color:#0a0a0a;font:18px/1.55 "Helvetica Neue",Helvetica,Arial,sans-serif}h1{font-size:clamp(2rem,6vw,3.5rem);line-height:1;margin:.4em 0}p{max-width:34rem}</style>
+<main><p>rionlyu.dev</p><h1>Just a moment.</h1><p>The site is handling more traffic than usual. Please try again in a few seconds.</p></main>
+</html>`
+
 type contextKey string
 
 const requestIDKey contextKey = "request-id"
@@ -106,6 +115,35 @@ func (s *Server) security(next http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
 		next.ServeHTTP(w, r)
+	})
+}
+
+// overload bounds active application work without making requests wait in an
+// unbounded queue. Health checks bypass the gate so an orchestrator can still
+// distinguish a busy process from a dead one.
+func (s *Server) overload(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		select {
+		case s.inFlight <- struct{}{}:
+			defer func() { <-s.inFlight }()
+			next.ServeHTTP(w, r)
+		default:
+			w.Header().Set("Cache-Control", "no-store")
+			w.Header().Set("Retry-After", "5")
+			if (r.Method == http.MethodGet || r.Method == http.MethodHead) && strings.Contains(strings.ToLower(r.Header.Get("Accept")), "text/html") {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.WriteHeader(http.StatusServiceUnavailable)
+				if r.Method == http.MethodGet {
+					_, _ = w.Write([]byte(overloadPage))
+				}
+				return
+			}
+			http.Error(w, "Service temporarily busy. Please try again shortly.", http.StatusServiceUnavailable)
+		}
 	})
 }
 

@@ -45,13 +45,15 @@ func run() error {
 	}
 	sender := contactSender(cfg)
 	limiter := contact.NewLimiter(cfg.ContactRateLimit, cfg.ContactRateWindow, time.Now)
+	globalLimiter := contact.NewLimiter(cfg.ContactGlobalLimit, cfg.ContactRateWindow, time.Now)
 	application, err := bloghttp.New(bloghttp.Dependencies{
-		Config:   cfg,
-		Content:  store,
-		Renderer: renderer,
-		Sender:   sender,
-		Limiter:  limiter,
-		Logger:   logger,
+		Config:        cfg,
+		Content:       store,
+		Renderer:      renderer,
+		Sender:        sender,
+		Limiter:       limiter,
+		GlobalLimiter: globalLimiter,
+		Logger:        logger,
 	})
 	if err != nil {
 		return err

@@ -1,0 +1,75 @@
+name: rionlyu-blog-mikrus
+
+services:
+  blog:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      PORT: "8080"
+      CANONICAL_ORIGIN: https://rionlyu.dev
+      CONTACT_PROVIDER: webhook
+      CONTACT_WEBHOOK_URL: ${CONTACT_WEBHOOK_URL:?Set CONTACT_WEBHOOK_URL in .env}
+      CONTACT_WEBHOOK_TOKEN: ${CONTACT_WEBHOOK_TOKEN:-}
+      CONTACT_DELIVERY_TIMEOUT: ${CONTACT_DELIVERY_TIMEOUT:-8s}
+      CONTACT_RATE_LIMIT: ${CONTACT_RATE_LIMIT:-5}
+      CONTACT_GLOBAL_RATE_LIMIT: ${CONTACT_GLOBAL_RATE_LIMIT:-100}
+      CONTACT_RATE_WINDOW: ${CONTACT_RATE_WINDOW:-1h}
+      MAX_IN_FLIGHT_REQUESTS: ${MAX_IN_FLIGHT_REQUESTS:-64}
+      CSRF_SECRET: ${CSRF_SECRET:?Set CSRF_SECRET in .env}
+      # Only the tunnel container may supply forwarding headers.
+      TRUSTED_PROXY_CIDRS: 172.31.0.3/32
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 15s
+    networks:
+      tunnel:
+        ipv4_address: 172.31.0.2
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+    restart: unless-stopped
+    depends_on:
+      blog:
+        condition: service_healthy
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN in .env}
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 15s
+    networks:
+      tunnel:
+        ipv4_address: 172.31.0.3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  tunnel:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/24

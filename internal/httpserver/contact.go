@@ -123,7 +123,11 @@ func (s *Server) submitContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if allowed, retryAfter := s.limiter.Allow(s.rateKey(r)); !allowed {
+	allowed, retryAfter := s.limiter.Allow(s.rateKey(r))
+	if allowed {
+		allowed, retryAfter = s.globalLimiter.Allow("contact")
+	}
+	if !allowed {
 		seconds := int64((retryAfter + time.Second - 1) / time.Second)
 		w.Header().Set("Retry-After", strconv.FormatInt(seconds, 10))
 		s.renderContact(w, r, http.StatusTooManyRequests, render.ContactForm{
