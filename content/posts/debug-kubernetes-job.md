@@ -1,5 +1,5 @@
 ---
-title: Debug a Kubernetes Job that never starts
+title: Debug a Kubernetes Job from queue to container startup
 slug: debug-kubernetes-job-never-starts
 date: 2026-07-15
 summary: A read-only workflow for finding the exact stage where a Job stopped making progress.

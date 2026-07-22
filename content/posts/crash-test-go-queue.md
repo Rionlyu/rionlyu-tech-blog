@@ -1,5 +1,5 @@
 ---
-title: Crash-test a file-backed queue in Go
+title: Crash-test a file-backed Go queue at failure boundaries
 slug: crash-test-file-backed-go-queue
 date: 2026-07-08
 summary: Turn durability claims into a byte-level replay test and a process-crash matrix.

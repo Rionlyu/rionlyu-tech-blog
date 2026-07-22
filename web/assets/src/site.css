@@ -305,7 +305,7 @@ main {
 }
 
 .article-body {
-  width: min(100%, 66ch);
+  width: min(calc(100% - 2 * clamp(1.25rem, 4vw, 4.5rem)), 66ch);
   margin-inline: auto;
   padding-block: clamp(3rem, 8vw, 8rem);
   font-size: clamp(1.15rem, 1.5vw, 1.45rem);
