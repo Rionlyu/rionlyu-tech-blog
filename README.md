@@ -116,7 +116,7 @@ Every non-standard runtime/build dependency is pinned:
 
 | Dependency | Why it exists |
 |---|---|
-| `goldmark` 1.8.2 | CommonMark/GFM parsing with raw HTML disabled |
+| `goldmark` 1.8.4 | CommonMark/GFM parsing with raw HTML disabled |
 | `bluemonday` 1.0.27 | Defense-in-depth allowlist sanitation after Markdown rendering |
 | `yaml.v3` 3.0.1 | Strict front matter and content-copy decoding |
 | `x/net` 0.57.0 | Explicit secure override for the sanitizer’s HTML tokenizer dependency |

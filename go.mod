@@ -1,10 +1,10 @@
 module github.com/Rionlyu/rionlyu-tech-blog
 
-go 1.26.0
+go 1.26.5
 
 require (
 	github.com/microcosm-cc/bluemonday v1.0.27
-	github.com/yuin/goldmark v1.8.2
+	github.com/yuin/goldmark v1.8.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 

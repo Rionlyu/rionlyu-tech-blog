@@ -31,6 +31,12 @@ updates:
       day: monday
       timezone: Europe/Warsaw
     open-pull-requests-limit: 5
+    ignore:
+      # The asset builder follows the active Node LTS line; allow updates within
+      # that line without automatically switching the project to Current.
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: docker
     directory: /deploy
