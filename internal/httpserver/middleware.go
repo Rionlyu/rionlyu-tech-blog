@@ -19,7 +19,7 @@ const overloadPage = `<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Please try again shortly</title>
 <style>body{max-width:42rem;margin:15vh auto;padding:0 1.5rem;background:#ece4d7;color:#0a0a0a;font:18px/1.55 "Helvetica Neue",Helvetica,Arial,sans-serif}h1{font-size:clamp(2rem,6vw,3.5rem);line-height:1;margin:.4em 0}p{max-width:34rem}</style>
-<main><p>rionlyu.dev</p><h1>Just a moment.</h1><p>The site is handling more traffic than usual. Please try again in a few seconds.</p></main>
+<main><p>rionlyu.com</p><h1>Just a moment.</h1><p>The site is handling more traffic than usual. Please try again in a few seconds.</p></main>
 </html>`
 
 type contextKey string
@@ -163,8 +163,12 @@ func (s *Server) contentSecurityPolicy(inlineScript []byte) string {
 func (s *Server) redirects(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		host := requestHost(r.Host)
-		if host == "www.rionlyu.dev" || host == "rionlyu.com" || host == "www.rionlyu.com" {
-			http.Redirect(w, r, "https://rionlyu.dev"+r.URL.RequestURI(), http.StatusPermanentRedirect)
+		if host == "www."+strings.ToLower(s.config.Origin.Hostname()) {
+			target := *s.config.Origin
+			target.Path = r.URL.Path
+			target.RawPath = r.URL.RawPath
+			target.RawQuery = r.URL.RawQuery
+			http.Redirect(w, r, target.String(), http.StatusPermanentRedirect)
 			return
 		}
 		// Container orchestrators need a private HTTP liveness check before public

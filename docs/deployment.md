@@ -12,7 +12,7 @@ Only Caddy is published on the host. The blog trusts forwarded HTTPS and client-
 
 You need:
 
-- control of `rionlyu.dev` DNS;
+- control of `rionlyu.com` DNS;
 - a Linux host with a public IP address;
 - TCP ports 80 and 443 open, plus UDP 443 if you want HTTP/3;
 - Docker Engine with the Compose plugin, installed from Docker’s [official instructions](https://docs.docker.com/engine/install/);
@@ -24,7 +24,7 @@ At the DNS provider, create:
 Type   Name   Value
 A      @      <server IPv4 address>
 AAAA   @      <server IPv6 address, only if IPv6 works on the host>
-CNAME  www    rionlyu.dev.
+CNAME  www    rionlyu.com.
 ```
 
 Do not publish an `AAAA` record merely because the provider offers one; a broken IPv6 route makes the site intermittently unreachable. DNS must point at the host before Caddy can obtain certificates.
@@ -89,19 +89,19 @@ The blog container publishes no host port. Do not add an `8080:8080` mapping; by
 After DNS has propagated:
 
 ```sh
-curl -fsS https://rionlyu.dev/healthz
-curl -I https://rionlyu.dev/
-curl -I https://www.rionlyu.dev/posts/acknowledgement-durability-boundary
-curl -fsS https://rionlyu.dev/rss.xml
-curl -fsS https://rionlyu.dev/sitemap.xml
+curl -fsS https://rionlyu.com/healthz
+curl -I https://rionlyu.com/
+curl -I https://www.rionlyu.com/posts/acknowledgement-durability-boundary
+curl -fsS https://rionlyu.com/rss.xml
+curl -fsS https://rionlyu.com/sitemap.xml
 ```
 
 Confirm that:
 
 - the health response is `ok`;
 - the apex returns HTTPS with CSP, HSTS, and `X-Content-Type-Options` headers;
-- `www.rionlyu.dev` returns a permanent `308` redirect to the same path on the apex;
-- canonical URLs, RSS, and sitemap entries use `https://rionlyu.dev`;
+- `www.rionlyu.com` returns a permanent `308` redirect to the same path on the apex;
+- canonical URLs, RSS, and sitemap entries use `https://rionlyu.com`;
 - one real contact message arrives;
 - a rejected webhook response does not display the success state.
 
@@ -130,8 +130,6 @@ For a rollback, check out a previously reviewed commit or tag and run the final 
 
 ## Other container hosts
 
-The image works on managed container platforms too. Set `ENVIRONMENT=production`, `CANONICAL_ORIGIN=https://rionlyu.dev`, the contact settings, and a 32-byte-or-longer `CSRF_SECRET`. Configure `/healthz` as the health check.
+The image works on managed container platforms too. Set `ENVIRONMENT=production`, `CANONICAL_ORIGIN=https://rionlyu.com`, the contact settings, and a 32-byte-or-longer `CSRF_SECRET`. Configure `/healthz` as the health check.
 
 The platform will normally terminate TLS before forwarding HTTP to the container. Add only the platform’s documented proxy CIDRs to `TRUSTED_PROXY_CIDRS`; never use `0.0.0.0/0` or `::/0`. The proxy must replace client-supplied forwarding headers. Without that exact boundary, use the Caddy deployment above.
-
-If `rionlyu.com` is acquired later, add `rionlyu.com` and `www.rionlyu.com` to the Caddy site-address line and point both names at the same host. The application already redirects them permanently to `https://rionlyu.dev`.

@@ -48,9 +48,9 @@ The Mikrus image already disables password authentication. The drop-in makes tha
 
 ## 2. Register the domain and prepare Cloudflare
 
-Register `rionlyu.dev` with [Cloudflare Registrar](https://www.cloudflare.com/application-services/products/registrar/buy-dev-domains/), enable account two-factor authentication, registrar lock, DNSSEC, and automatic renewal. Do not purchase hosting, email, or an SSL certificate.
+Register `rionlyu.com` with Cloudflare Registrar, enable account two-factor authentication, registrar lock, DNSSEC, and automatic renewal. Do not purchase hosting, email, or an SSL certificate.
 
-Cloudflare will be both the registrar/DNS provider and the public TLS edge. A `.dev` domain requires HTTPS from its first browser visit; the tunnel supplies it automatically.
+Cloudflare will be both the registrar/DNS provider and the public TLS edge. The tunnel supplies HTTPS automatically.
 
 ## 3. Verify the preinstalled Docker runtime
 
@@ -74,8 +74,8 @@ Cloudflare recommends remotely managed tunnels for Docker. In the Cloudflare das
 1. Open **Networking → Tunnels** and create a Cloudflared tunnel named `rionlyu-blog`.
 2. Select the Docker connector instructions.
 3. Copy only the long `eyJ...` tunnel token; do not run the displayed one-off Docker command.
-4. Add a public application route for `rionlyu.dev` with service URL `http://blog:8080`.
-5. Add a second route for `www.rionlyu.dev` with the same service URL.
+4. Add a public application route for `rionlyu.com` with service URL `http://blog:8080`.
+5. Add a second route for `www.rionlyu.com` with the same service URL.
 6. Leave the HTTP Host Header unchanged so the application receives the public hostname.
 
 The route creation manages the required proxied DNS records. Do not add separate `A` or `AAAA` records for these two names. No `cert.pem`, tunnel JSON file, public server IP, or inbound firewall opening is needed.
@@ -136,18 +136,18 @@ The tunnel should show four established edge connections and the internal health
 ## 7. Verify the public site
 
 ```sh
-curl -fsS https://rionlyu.dev/healthz
-curl -I https://rionlyu.dev/
-curl -I https://www.rionlyu.dev/projects
-curl -fsS https://rionlyu.dev/rss.xml
-curl -fsS https://rionlyu.dev/sitemap.xml
+curl -fsS https://rionlyu.com/healthz
+curl -I https://rionlyu.com/
+curl -I https://www.rionlyu.com/projects
+curl -fsS https://rionlyu.com/rss.xml
+curl -fsS https://rionlyu.com/sitemap.xml
 ```
 
 Confirm that:
 
 - the apex loads over HTTPS with CSP, HSTS, and `X-Content-Type-Options` headers;
 - `www` returns a permanent `308` redirect to the same path on the apex;
-- canonical URLs, RSS, and sitemap use `https://rionlyu.dev`;
+- canonical URLs, RSS, and sitemap use `https://rionlyu.com`;
 - one real contact message arrives;
 - a rejected webhook response never displays the success state.
 

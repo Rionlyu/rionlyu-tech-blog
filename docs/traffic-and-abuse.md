@@ -72,7 +72,7 @@ Never include `/contact`, `/healthz`, redirects, errors, or arbitrary future pat
 After deployment, request a post twice and confirm `CF-Cache-Status` changes from `MISS` to `HIT` or `REVALIDATED`:
 
 ```sh
-curl -sI https://rionlyu.dev/posts/acknowledgement-durability-boundary | grep -Ei '^(cache-control|cf-cache-status|age):'
+curl -sI https://rionlyu.com/posts/acknowledgement-durability-boundary | grep -Ei '^(cache-control|cf-cache-status|age):'
 ```
 
 ### 4. Treat bot challenges as escalation

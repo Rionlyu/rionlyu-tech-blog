@@ -1,4 +1,4 @@
-# rionlyu.dev
+# rionlyu.com
 
 The source for Beniamin Kmieć’s technical blog. It is a small Go server that loads authored Markdown once, renders escaped HTML templates, and serves an immutable content snapshot. JavaScript is limited to the writing-index title experiment and the contact-success celebration.
 
@@ -145,7 +145,7 @@ docker build -t rionlyu-blog:latest .
 docker run --read-only --tmpfs /tmp \
   -p 8080:8080 \
   -e ENVIRONMENT=production \
-  -e CANONICAL_ORIGIN=https://rionlyu.dev \
+  -e CANONICAL_ORIGIN=https://rionlyu.com \
   -e CONTACT_PROVIDER=webhook \
   -e CONTACT_WEBHOOK_URL=https://provider.example/accepted-messages \
   -e CONTACT_WEBHOOK_TOKEN \

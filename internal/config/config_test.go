@@ -35,11 +35,11 @@ func TestLoadProductionValidation(t *testing.T) {
 		name   string
 		values map[string]string
 	}{
-		{name: "requires HTTPS origin", values: map[string]string{"CANONICAL_ORIGIN": "http://rionlyu.dev", "CONTACT_PROVIDER": "webhook", "CONTACT_WEBHOOK_URL": "https://contact.example", "CSRF_SECRET": longSecret}},
-		{name: "requires webhook", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.dev", "CONTACT_PROVIDER": "devnull", "CSRF_SECRET": longSecret}},
-		{name: "requires webhook URL", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.dev", "CONTACT_PROVIDER": "webhook", "CSRF_SECRET": longSecret}},
-		{name: "requires CSRF secret", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.dev", "CONTACT_PROVIDER": "webhook", "CONTACT_WEBHOOK_URL": "https://contact.example"}},
-		{name: "rejects HTTP webhook", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.dev", "CONTACT_PROVIDER": "webhook", "CONTACT_WEBHOOK_URL": "http://contact.example", "CSRF_SECRET": longSecret}},
+		{name: "requires HTTPS origin", values: map[string]string{"CANONICAL_ORIGIN": "http://rionlyu.com", "CONTACT_PROVIDER": "webhook", "CONTACT_WEBHOOK_URL": "https://contact.example", "CSRF_SECRET": longSecret}},
+		{name: "requires webhook", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.com", "CONTACT_PROVIDER": "devnull", "CSRF_SECRET": longSecret}},
+		{name: "requires webhook URL", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.com", "CONTACT_PROVIDER": "webhook", "CSRF_SECRET": longSecret}},
+		{name: "requires CSRF secret", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.com", "CONTACT_PROVIDER": "webhook", "CONTACT_WEBHOOK_URL": "https://contact.example"}},
+		{name: "rejects HTTP webhook", values: map[string]string{"CANONICAL_ORIGIN": "https://rionlyu.com", "CONTACT_PROVIDER": "webhook", "CONTACT_WEBHOOK_URL": "http://contact.example", "CSRF_SECRET": longSecret}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestLoadProduction(t *testing.T) {
 	t.Parallel()
 	cfg, err := config.Load(mapLookup(map[string]string{
 		"ENVIRONMENT":         "production",
-		"CANONICAL_ORIGIN":    "https://rionlyu.dev",
+		"CANONICAL_ORIGIN":    "https://rionlyu.com",
 		"CONTACT_PROVIDER":    "webhook",
 		"CONTACT_WEBHOOK_URL": "https://contact.example/",
 		"CSRF_SECRET":         longSecret,

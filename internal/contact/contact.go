@@ -121,7 +121,7 @@ func (s *WebhookSender) Send(ctx context.Context, message Message) error {
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
-	request.Header.Set("User-Agent", "rionlyu.dev-contact/1")
+	request.Header.Set("User-Agent", "rionlyu.com-contact/1")
 	if s.token != "" {
 		request.Header.Set("Authorization", "Bearer "+s.token)
 	}

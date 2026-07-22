@@ -9,7 +9,7 @@ services:
     environment:
       ENVIRONMENT: production
       PORT: "8080"
-      CANONICAL_ORIGIN: https://rionlyu.dev
+      CANONICAL_ORIGIN: https://rionlyu.com
       CONTACT_PROVIDER: webhook
       CONTACT_WEBHOOK_URL: ${CONTACT_WEBHOOK_URL:?Set CONTACT_WEBHOOK_URL in .env}
       CONTACT_WEBHOOK_TOKEN: ${CONTACT_WEBHOOK_TOKEN:-}

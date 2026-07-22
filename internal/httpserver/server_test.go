@@ -165,9 +165,9 @@ func TestArticleCSPAndConditionalCaching(t *testing.T) {
 func TestCanonicalAndHTTPSRedirects(t *testing.T) {
 	t.Parallel()
 	development := newHarness(t, harnessOptions{})
-	aliasRequest := httptest.NewRequest(http.MethodGet, "http://www.rionlyu.dev/projects?from=com", nil)
+	aliasRequest := httptest.NewRequest(http.MethodGet, "http://www.example.test/projects?from=www", nil)
 	aliasResponse := serve(development.handler, aliasRequest)
-	if aliasResponse.Code != http.StatusPermanentRedirect || aliasResponse.Header().Get("Location") != "https://rionlyu.dev/projects?from=com" {
+	if aliasResponse.Code != http.StatusPermanentRedirect || aliasResponse.Header().Get("Location") != "https://example.test/projects?from=www" {
 		t.Fatalf("alias redirect = %d %q", aliasResponse.Code, aliasResponse.Header().Get("Location"))
 	}
 
