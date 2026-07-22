@@ -34,6 +34,7 @@ async function checkBuiltAssets() {
     const content = await readFile(path.join(root, "web/assets/dist", fileName));
     if (!fileName.includes(digest(content))) throw new Error(`${fileName} does not contain its content hash`);
     const compressed = await readFile(path.join(root, "web/assets/dist", `${fileName}.gz`));
+    if (compressed[9] !== 255) throw new Error(`${fileName}.gz records a host-specific gzip OS`);
     if (!gunzipSync(compressed).equals(content)) throw new Error(`${fileName}.gz does not expand to the fingerprinted asset`);
   }
 }
