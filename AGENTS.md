@@ -32,6 +32,7 @@
 
 ## Verification
 
+- A new Codex cloud environment needs no secrets. Its setup script may run `npm ci` and `go mod download`; keep agent internet access disabled unless the requested task requires a narrowly scoped exception.
 - Run `npm ci` when dependencies are not installed.
 - Run `make check` before requesting review. It builds assets, audits dependencies, runs formatting and static checks, executes normal and race tests, scans Go dependencies, and builds the production binary.
 - If an environment cannot run a required check, run every available check and state exactly what remains unverified.
