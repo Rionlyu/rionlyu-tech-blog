@@ -5,7 +5,7 @@ COPY tools ./tools
 COPY web/assets/src ./web/assets/src
 RUN npm ci && npm run build:assets && npm run check:assets
 
-FROM golang:1.26.5-alpine3.24 AS build
+FROM golang:1.26.6-alpine3.24 AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
