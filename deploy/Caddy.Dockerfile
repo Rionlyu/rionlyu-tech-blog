@@ -1,4 +1,4 @@
-FROM golang:1.26.5-alpine3.24 AS build
+FROM golang:1.26.6-alpine3.24 AS build
 WORKDIR /src
 COPY deploy/caddy/go.mod deploy/caddy/go.sum ./
 RUN go mod download all
