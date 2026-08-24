@@ -34,7 +34,7 @@ RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" \
       -ldflags="-s -w -X main.Version=${CLOUDFLARED_VERSION} -X main.BuildTime=${CLOUDFLARED_BUILD_TIME} -X github.com/cloudflare/cloudflared/metrics.Runtime=virtual" \
       -o /out/cloudflared ./cmd/cloudflared
 
-FROM gcr.io/distroless/static-debian13:nonroot@sha256:f7f8f729987ad0fdf6b05eeeae94b26e6a0f613bdf46feea7fc40f7bd72953e6
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:1c2c046bc09ed40fad370b599a0b1ae7987f55b01e247cf27a7c27cd97e5bbc7
 
 ARG CLOUDFLARED_VERSION=2026.7.2
 ARG CLOUDFLARED_COMMIT=8679787525edc8575b2948a7c4a50b6292c6d426
