@@ -3,7 +3,7 @@
 # Cloudflare's 2026.7.2 image was built with Go 1.26.4 and gRPC 1.81.1.
 # This reproducible rebuild keeps the exact upstream source commit while applying
 # the two dependency-only updates recorded in cloudflared-security.patch.
-FROM golang:1.26.5-alpine3.24@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 AS build
+FROM golang:1.27.1-alpine3.24@sha256:cf6fca6641884b8433441b2b0652976f975e1d0fdd26d177eaaf8596087f3125 AS build
 
 ENV GOTOOLCHAIN=local
 
