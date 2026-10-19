@@ -9,7 +9,7 @@
     "check:assets": "node tools/check-assets.mjs"
   },
   "dependencies": {
-    "@chenglou/pretext": "0.0.8",
+    "@chenglou/pretext": "1.0.0",
     "htmx.org": "2.0.10"
   },
   "devDependencies": {
