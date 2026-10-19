@@ -1,4 +1,4 @@
-FROM node:24.18.0-alpine3.24 AS assets
+FROM node:24.22.0-alpine3.24 AS assets
 WORKDIR /src
 COPY package.json package-lock.json ./
 COPY tools ./tools
