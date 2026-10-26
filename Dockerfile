@@ -13,7 +13,7 @@ COPY . .
 COPY --from=assets /src/web/assets/dist ./web/assets/dist
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/blog ./cmd/blog
 
-FROM alpine:3.24.1
+FROM alpine:3.24.3
 LABEL org.opencontainers.image.source="https://github.com/Rionlyu/rionlyu-tech-blog" \
       org.opencontainers.image.licenses="MIT"
 RUN apk add --no-cache ca-certificates \
