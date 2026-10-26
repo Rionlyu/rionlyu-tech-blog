@@ -7,7 +7,7 @@ RUN CADDY_VERSION="$(go list -m -f '{{.Version}}' github.com/caddyserver/caddy/v
         -ldflags="-s -w -X github.com/caddyserver/caddy/v2.CustomVersion=${CADDY_VERSION}" \
         -o /out/caddy github.com/caddyserver/caddy/v2/cmd/caddy
 
-FROM alpine:3.24.1
+FROM alpine:3.24.3
 LABEL org.opencontainers.image.source="https://github.com/Rionlyu/rionlyu-tech-blog" \
       org.opencontainers.image.licenses="Apache-2.0"
 RUN apk add --no-cache ca-certificates \
